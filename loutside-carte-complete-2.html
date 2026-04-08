@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>L'Outside — La Carte</title>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+DW+Pica:ital@0;1&family=Josefin+Sans:wght@100;200;300;400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Spectral:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --brass:#A8803A; --brass-light:#C9A055; --brass-pale:#E0C07A; --brass-dim:#7A5C28;
+  --parchment:#F0E8D0; --parchment2:#E8DEC0; --ivory:#FAF5E8;
+  --ink:#1A140A; --ink2:#231B0E; --map-line:rgba(168,128,58,0.15);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{height:100%;}
+body{min-height:100%;background:var(--ink);color:var(--parchment);font-family:'Cormorant Garamond',serif;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+
+.bg-base{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 120% 70% at 50% -10%,rgba(168,128,58,.12) 0%,transparent 55%),radial-gradient(ellipse 60% 80% at 0% 100%,rgba(58,40,16,.7) 0%,transparent 50%),radial-gradient(ellipse 60% 80% at 100% 100%,rgba(30,20,8,.6) 0%,transparent 50%),linear-gradient(160deg,#1A140A 0%,#1E1810 40%,#14100A 100%);}
+.bg-grid{position:fixed;inset:0;z-index:0;background-image:linear-gradient(var(--map-line) 1px,transparent 1px),linear-gradient(90deg,var(--map-line) 1px,transparent 1px);background-size:60px 60px;}
+.bg-meridian{position:fixed;inset:0;z-index:0;opacity:.035;background:repeating-linear-gradient(-20deg,transparent 0,transparent 120px,var(--brass) 120px,var(--brass) 121px);}
+.bg-grain{position:fixed;inset:0;z-index:0;opacity:.035;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");background-repeat:repeat;}
+.frame-outer{position:fixed;inset:14px;z-index:1;pointer-events:none;border:1px solid rgba(168,128,58,.22);}
+.frame-inner{position:absolute;inset:5px;border:1px solid rgba(168,128,58,.10);}
+.corner-mark{position:fixed;z-index:2;width:40px;height:40px;pointer-events:none;}
+.corner-mark svg{width:100%;height:100%;}
+.corner-mark.tl{top:14px;left:14px;}.corner-mark.tr{top:14px;right:14px;transform:scaleX(-1);}
+.corner-mark.bl{bottom:14px;left:14px;transform:scaleY(-1);}.corner-mark.br{bottom:14px;right:14px;transform:scale(-1);}
+
+/* PAGES */
+.page{display:none !important;}
+.page.active{display:block !important;}
+#page-accueil.active{display:flex !important;}
+#page-accueil{position:relative;z-index:10;min-height:100vh;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;}
+
+/* ACCUEIL HEADER */
+.masthead-accueil{text-align:center;margin-bottom:32px;animation:riseIn 1.4s cubic-bezier(.16,1,.3,1) both;}
+.eyebrow{font-family:'Josefin Sans',sans-serif;font-size:8.5px;letter-spacing:7px;text-transform:uppercase;color:var(--brass);opacity:.6;margin-bottom:14px;}
+.masthead-rule{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:20px;}
+.rule-line{flex:1;max-width:140px;height:1px;background:linear-gradient(90deg,transparent,var(--brass-light),transparent);}
+.rule-cross{position:relative;width:12px;height:12px;}
+.rule-cross::before,.rule-cross::after{content:'';position:absolute;background:var(--brass-light);}
+.rule-cross::before{width:1px;height:100%;left:50%;transform:translateX(-50%);}
+.rule-cross::after{width:100%;height:1px;top:50%;transform:translateY(-50%);}
+.title-main{font-family:'IM Fell DW Pica',serif;font-size:clamp(52px,14vw,96px);font-weight:400;color:var(--brass-pale);letter-spacing:2px;line-height:.88;text-shadow:0 2px 40px rgba(168,128,58,.3),0 0 1px rgba(168,128,58,.5);}
+.title-sub{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:16px;color:rgba(240,232,208,.45);letter-spacing:4px;margin-top:12px;}
+.welcome-phrase{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:clamp(16px,2.2vw,20px);color:rgba(240,232,208,.55);letter-spacing:1.5px;margin-top:14px;line-height:1.5;}
+.coordinates{font-family:'Josefin Sans',sans-serif;font-size:8px;letter-spacing:5px;text-transform:uppercase;color:rgba(168,128,58,.35);margin-top:8px;}
+
+.sep-accueil{display:flex;align-items:center;width:100%;max-width:520px;margin-bottom:32px;animation:riseIn 1.6s cubic-bezier(.16,1,.3,1) .15s both;}
+.sep-line{flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(168,128,58,.3),transparent);}
+.sep-body{display:flex;align-items:center;gap:10px;padding:0 18px;}
+.sep-lozenge{width:5px;height:5px;background:var(--brass);transform:rotate(45deg);opacity:.7;}
+.sep-text{font-family:'Spectral',serif;font-size:10px;letter-spacing:5px;text-transform:uppercase;color:var(--brass-light);font-weight:300;}
+
+/* NAV TOUCHES */
+.nav-touches{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;animation:riseIn 1.6s cubic-bezier(.16,1,.3,1) .3s both;position:relative;z-index:20;}
+.touch{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;width:150px;height:170px;background:linear-gradient(150deg,rgba(35,24,14,.92),rgba(20,15,8,.97));border:1px solid rgba(168,128,58,.18);cursor:pointer;overflow:hidden;transition:border-color .3s,transform .2s;gap:12px;-webkit-tap-highlight-color:transparent;user-select:none;touch-action:manipulation;}
+.touch::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--brass-dim),var(--brass),var(--brass-dim),transparent);opacity:.55;}
+.touch:active{transform:scale(.95);border-color:rgba(168,128,58,.6);}
+.touch .tc{position:absolute;width:12px;height:12px;border-color:rgba(168,128,58,.4);border-style:solid;}
+.touch .tc.tl{top:5px;left:5px;border-width:1px 0 0 1px;}.touch .tc.tr{top:5px;right:5px;border-width:1px 1px 0 0;}
+.touch .tc.bl{bottom:5px;left:5px;border-width:0 0 1px 1px;}.touch .tc.br{bottom:5px;right:5px;border-width:0 1px 1px 0;}
+.touch-icon{font-size:32px;color:var(--brass);line-height:1;position:relative;z-index:1;}
+.touch-label{font-family:'Spectral',serif;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--brass-light);font-weight:300;position:relative;z-index:1;text-align:center;padding:0 8px;}
+.touch-sub{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11px;color:rgba(240,232,208,.28);position:relative;z-index:1;margin-top:-6px;}
+
+/* INSTAGRAM */
+.insta-btn{margin-top:28px;display:flex;align-items:center;gap:14px;padding:12px 22px;background:rgba(255,255,255,.04);border:1px solid rgba(168,128,58,.2);cursor:pointer;text-decoration:none;animation:riseIn 1.6s cubic-bezier(.16,1,.3,1) .45s both;transition:background .3s,border-color .3s;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+.insta-btn:active{background:rgba(168,128,58,.12);border-color:rgba(168,128,58,.5);}
+.insta-text{font-family:'Josefin Sans',sans-serif;font-size:8px;letter-spacing:5px;text-transform:uppercase;color:rgba(240,232,208,.45);}
+.insta-handle{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:var(--brass-light);margin-top:2px;}
+
+.foot-accueil{margin-top:24px;text-align:center;animation:riseIn 1.6s cubic-bezier(.16,1,.3,1) .6s both;}
+.foot-coord-sm{font-family:'Josefin Sans',sans-serif;font-size:7px;letter-spacing:5px;text-transform:uppercase;color:rgba(168,128,58,.22);}
+
+/* PAGES MENU */
+.page-menu{position:relative;z-index:10;}
+.wrapper{max-width:860px;margin:0 auto;padding:0 24px 80px;}
+
+/* BOUTON RETOUR */
+.btn-retour-wrap{position:sticky;top:0;z-index:50;display:flex;justify-content:center;padding:14px 24px 10px;background:linear-gradient(to bottom,rgba(26,20,10,.98) 75%,transparent);}
+.btn-retour{display:inline-flex;align-items:center;gap:10px;padding:12px 22px;background:rgba(168,128,58,.12);border:1px solid rgba(168,128,58,.4);color:var(--brass-light);cursor:pointer;font-family:'Josefin Sans',sans-serif;font-size:9px;letter-spacing:5px;text-transform:uppercase;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:background .2s;}
+.btn-retour:active{background:rgba(168,128,58,.28);}
+
+/* TITRE CATÉGORIE */
+.cat-title-wrap{text-align:center;padding:28px 0 28px;margin-bottom:32px;border-bottom:1px solid rgba(168,128,58,.2);}
+.cat-eyebrow{font-family:'Josefin Sans',sans-serif;font-size:8px;letter-spacing:7px;text-transform:uppercase;color:var(--brass);opacity:.55;margin-bottom:12px;}
+.cat-title{font-family:'IM Fell DW Pica',serif;font-size:clamp(36px,8vw,64px);color:var(--brass-pale);line-height:.9;text-shadow:0 2px 30px rgba(168,128,58,.2);}
+.cat-sub{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:rgba(240,232,208,.35);letter-spacing:3px;margin-top:8px;}
+
+/* SEP */
+.sep{display:flex;align-items:center;margin:40px 0 26px;}
+
+/* GRILLE */
+.grid{display:grid;grid-template-columns:1fr;gap:18px;}
+@media(min-width:600px){.grid{grid-template-columns:1fr 1fr;}.span2{grid-column:1/-1;}}
+
+/* PANEL */
+.panel{background:linear-gradient(150deg,rgba(35,24,14,.9),rgba(22,17,10,.95));border:1px solid rgba(168,128,58,.14);padding:22px 18px;position:relative;}
+.panel::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--brass-dim),var(--brass),var(--brass-dim),transparent);opacity:.5;}
+.panel-hd{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.panel-icon{font-size:13px;opacity:.75;flex-shrink:0;}
+.panel-title{font-family:'Spectral',serif;font-size:13px;letter-spacing:3px;text-transform:uppercase;font-weight:300;color:var(--brass-pale);}
+.panel-rule{flex:1;height:1px;background:linear-gradient(90deg,rgba(168,128,58,.2),transparent);}
+
+/* LÉGENDE */
+.price-legend{font-family:'Josefin Sans',sans-serif;font-size:8px;letter-spacing:3px;text-transform:uppercase;color:rgba(168,128,58,.45);margin-bottom:10px;}
+
+/* PLATS */
+.dish{padding:9px 0;border-bottom:1px solid rgba(168,128,58,.07);display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+.dish:last-child{border-bottom:none;}
+.dish-body{flex:1;}
+.dish-name{font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:600;color:var(--ivory);line-height:1.25;margin-bottom:2px;}
+.dish-desc{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:12px;color:rgba(240,232,208,.38);line-height:1.5;}
+.dish-price{font-family:'Josefin Sans',sans-serif;font-size:12px;font-weight:300;color:var(--brass-light);white-space:nowrap;padding-top:2px;flex-shrink:0;}
+
+.saucisson-box{background:rgba(168,128,58,.04);border:1px solid rgba(168,128,58,.13);padding:11px 14px;margin-bottom:14px;}
+.saucisson-title{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;color:var(--brass-pale);margin-bottom:4px;}
+.saucisson-list{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:12px;color:rgba(240,232,208,.42);line-height:1.8;}
+
+/* COCKTAILS */
+.cocktail{padding:8px 0;border-bottom:1px solid rgba(168,128,58,.06);}
+.cocktail:last-child{border-bottom:none;}
+.ck-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:2px;}
+.ck-name{font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:600;color:var(--ivory);}
+.ck-vol{font-family:'Josefin Sans',sans-serif;font-size:7.5px;letter-spacing:1.5px;color:rgba(168,128,58,.45);margin-left:4px;}
+.ck-price{font-family:'Josefin Sans',sans-serif;font-size:11px;font-weight:300;color:var(--brass-light);white-space:nowrap;}
+.ck-desc{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11.5px;color:rgba(240,232,208,.36);line-height:1.5;}
+
+/* SPIRITUEUX */
+.sp-header{display:grid;grid-template-columns:1fr auto auto;gap:6px;padding-bottom:5px;margin-bottom:3px;border-bottom:1px solid rgba(168,128,58,.18);}
+.sp-h{font-family:'Josefin Sans',sans-serif;font-size:7px;letter-spacing:2px;text-transform:uppercase;color:rgba(168,128,58,.4);display:flex;align-items:center;gap:2px;justify-content:flex-end;}
+.sp-h:first-child{justify-content:flex-start;}
+.sp-row{display:grid;grid-template-columns:1fr auto auto;gap:6px;padding:5px 0;border-bottom:1px solid rgba(168,128,58,.05);align-items:center;}
+.sp-row:last-child{border-bottom:none;}
+.sp-name{font-family:'Cormorant Garamond',serif;font-size:13px;color:var(--parchment);}
+.sp-glass{font-family:'Josefin Sans',sans-serif;font-size:10px;font-weight:200;color:var(--brass-light);white-space:nowrap;text-align:right;}
+.sp-btl{font-family:'Josefin Sans',sans-serif;font-size:10px;font-weight:200;color:rgba(168,128,58,.5);white-space:nowrap;text-align:right;min-width:50px;}
+
+/* BIÈRES/SOFTS */
+.beer-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(168,128,58,.05);}
+.beer-row:last-child{border-bottom:none;}
+.beer-name{font-family:'Cormorant Garamond',serif;font-size:13px;color:var(--parchment);}
+.beer-vol{font-family:'Josefin Sans',sans-serif;font-size:8px;letter-spacing:1px;color:rgba(168,128,58,.38);margin-left:4px;}
+.beer-price{font-family:'Josefin Sans',sans-serif;font-size:11px;font-weight:200;color:var(--brass-light);white-space:nowrap;}
+
+/* CHAMPAGNE */
+.ch-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(168,128,58,.05);}
+.ch-row:last-child{border-bottom:none;}
+.ch-name{font-family:'Cormorant Garamond',serif;font-size:13px;color:var(--parchment);}
+.ch-price{font-family:'Josefin Sans',sans-serif;font-size:11px;font-weight:200;color:var(--brass-light);white-space:nowrap;}
+
+/* VINS */
+.wine{padding:7px 0;border-bottom:1px solid rgba(168,128,58,.07);display:grid;grid-template-columns:1fr auto;gap:3px 10px;}
+.wine:last-child{border-bottom:none;}
+.w-name{font-family:'Cormorant Garamond',serif;font-size:13px;font-weight:600;color:var(--ivory);}
+.w-name em{font-style:italic;color:var(--brass-light);font-size:11px;}
+.w-appel{font-family:'Josefin Sans',sans-serif;font-size:7px;letter-spacing:2px;text-transform:uppercase;color:rgba(168,128,58,.4);grid-column:1;}
+.w-price{font-family:'Josefin Sans',sans-serif;font-size:11px;font-weight:300;color:var(--brass-light);white-space:nowrap;grid-row:1/3;align-self:center;}
+.wine-vip{background:linear-gradient(135deg,rgba(168,128,58,.06),rgba(58,40,16,.12));border:1px solid rgba(168,128,58,.24);padding:14px;margin-top:10px;text-align:center;position:relative;}
+.vip-badge{position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:var(--ink2);border:1px solid rgba(168,128,58,.35);padding:2px 12px;font-family:'Josefin Sans',sans-serif;font-size:7px;letter-spacing:5px;text-transform:uppercase;color:var(--brass-light);white-space:nowrap;}
+.vip-name{font-family:'IM Fell DW Pica',serif;font-size:15px;color:var(--parchment2);}
+.vip-appel{font-family:'Josefin Sans',sans-serif;font-size:7.5px;letter-spacing:2px;text-transform:uppercase;color:var(--brass);opacity:.55;margin:3px 0;}
+.vip-price{font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--brass-pale);}
+.vip-note{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11px;color:rgba(240,232,208,.3);margin-top:4px;}
+
+.sub-label{font-family:'Josefin Sans',sans-serif;font-size:7px;letter-spacing:4px;text-transform:uppercase;color:rgba(168,128,58,.4);margin:14px 0 7px;padding-bottom:4px;border-bottom:1px solid rgba(168,128,58,.12);}
+
+/* FOOTER */
+.foot-menu{text-align:center;margin-top:50px;padding-top:30px;border-top:1px solid rgba(168,128,58,.18);}
+.foot-rule{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:14px;}
+.foot-line{flex:1;max-width:100px;height:1px;background:linear-gradient(90deg,transparent,var(--brass));}
+.foot-line.r{background:linear-gradient(270deg,transparent,var(--brass));}
+.foot-lozenge{width:6px;height:6px;background:var(--brass);transform:rotate(45deg);opacity:.6;}
+.foot-msg{font-family:'IM Fell DW Pica',serif;font-style:italic;font-size:16px;letter-spacing:2px;color:rgba(168,128,58,.45);}
+.foot-sm{font-family:'Josefin Sans',sans-serif;font-size:7px;letter-spacing:5px;text-transform:uppercase;color:rgba(168,128,58,.22);margin-top:8px;}
+
+@keyframes riseIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+@keyframes appear{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+.panel{animation:appear .6s ease both;}
+.panel:nth-child(1){animation-delay:.04s}.panel:nth-child(2){animation-delay:.08s}
+.panel:nth-child(3){animation-delay:.12s}.panel:nth-child(4){animation-delay:.16s}
+.panel:nth-child(5){animation-delay:.20s}.panel:nth-child(6){animation-delay:.24s}
+.panel:nth-child(7){animation-delay:.28s}.panel:nth-child(8){animation-delay:.32s}
+
+@media(max-width:420px){.touch{width:135px;height:158px;}.nav-touches{gap:12px;}.title-main{font-size:60px;}}
+</style>
+</head>
+<body>
+
+<div class="bg-base"></div><div class="bg-grid"></div><div class="bg-meridian"></div><div class="bg-grain"></div>
+<div class="frame-outer"><div class="frame-inner"></div></div>
+<div class="corner-mark tl"><svg viewBox="0 0 40 40" fill="none"><path d="M1 1 L1 20 M1 1 L20 1" stroke="#A8803A" stroke-width="1.5"/><path d="M6 1 L6 15 M1 6 L15 6" stroke="#A8803A" stroke-width=".5" opacity=".4"/><circle cx="1" cy="1" r="2" fill="#A8803A" opacity=".5"/></svg></div>
+<div class="corner-mark tr"><svg viewBox="0 0 40 40" fill="none"><path d="M1 1 L1 20 M1 1 L20 1" stroke="#A8803A" stroke-width="1.5"/><path d="M6 1 L6 15 M1 6 L15 6" stroke="#A8803A" stroke-width=".5" opacity=".4"/><circle cx="1" cy="1" r="2" fill="#A8803A" opacity=".5"/></svg></div>
+<div class="corner-mark bl"><svg viewBox="0 0 40 40" fill="none"><path d="M1 1 L1 20 M1 1 L20 1" stroke="#A8803A" stroke-width="1.5"/><path d="M6 1 L6 15 M1 6 L15 6" stroke="#A8803A" stroke-width=".5" opacity=".4"/><circle cx="1" cy="1" r="2" fill="#A8803A" opacity=".5"/></svg></div>
+<div class="corner-mark br"><svg viewBox="0 0 40 40" fill="none"><path d="M1 1 L1 20 M1 1 L20 1" stroke="#A8803A" stroke-width="1.5"/><path d="M6 1 L6 15 M1 6 L15 6" stroke="#A8803A" stroke-width=".5" opacity=".4"/><circle cx="1" cy="1" r="2" fill="#A8803A" opacity=".5"/></svg></div>
+
+
+<!-- ═══ PAGE ACCUEIL ═══ -->
+<div id="page-accueil" class="page active">
+  <header class="masthead-accueil">
+    <p class="eyebrow">Saint-Gilles-les-Bains &nbsp;·&nbsp; Île de La Réunion</p>
+    <div class="masthead-rule"><div class="rule-line"></div><div class="rule-cross"></div><div class="rule-line"></div></div>
+    <h1 class="title-main">L'Outside</h1>
+    <p class="welcome-phrase">Bienvenue à l'Outside</p>
+    <p class="title-sub">Bar · Restaurant · Lounge</p>
+    <p class="coordinates">21°03′S &nbsp;·&nbsp; 55°13′E</p>
+  </header>
+
+  <div class="sep-accueil">
+    <div class="sep-line"></div>
+    <div class="sep-body"><div class="sep-lozenge"></div><span class="sep-text">Explorez notre carte</span><div class="sep-lozenge"></div></div>
+    <div class="sep-line"></div>
+  </div>
+
+  <nav class="nav-touches">
+    <div class="touch" id="btn-chef">
+      <div class="tc tl"></div><div class="tc tr"></div><div class="tc bl"></div><div class="tc br"></div>
+      <div class="touch-icon"><svg width="36" height="36" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 6 C10 6 8 14 8 18 C8 22 11 24 14 24 L14 34"/><path d="M18 6 L18 16 C18 20 21 24 24 24 L24 34"/><path d="M14 6 L14 14"/><path d="M18 16 C18 16 22 14 24 14"/><line x1="8" y1="28" x2="30" y2="28"/></svg></div>
+      <span class="touch-label">Menu du Chef</span>
+      <span class="touch-sub">La Carte du Soir</span>
+    </div>
+    <div class="touch" id="btn-boissons">
+      <div class="tc tl"></div><div class="tc tr"></div><div class="tc bl"></div><div class="tc br"></div>
+      <div class="touch-icon"><svg width="36" height="36" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 8 L20 22 L32 8 Z"/><line x1="20" y1="22" x2="20" y2="32"/><line x1="14" y1="32" x2="26" y2="32"/><path d="M24 14 Q28 11 30 14" stroke-width="1"/></svg></div>
+      <span class="touch-label">Carte Boissons</span>
+      <span class="touch-sub">Cocktails &amp; Softs</span>
+    </div>
+    <div class="touch" id="btn-bouteilles">
+      <div class="tc tl"></div><div class="tc tr"></div><div class="tc bl"></div><div class="tc br"></div>
+      <div class="touch-icon"><svg width="36" height="36" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M16 6 L16 12 C16 12 10 16 10 24 C10 30 14 34 20 34 C26 34 30 30 30 24 C30 16 24 12 24 12 L24 6 Z"/><line x1="16" y1="6" x2="24" y2="6"/><path d="M13 22 Q20 19 27 22" stroke-width="1"/></svg></div>
+      <span class="touch-label">Bouteilles</span>
+      <span class="touch-sub">Spiritueux &amp; Vins</span>
+    </div>
+  </nav>
+
+  <a class="insta-btn" href="https://www.instagram.com/outside.re" target="_blank" rel="noopener">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--brass-light);opacity:.8;flex-shrink:0;">
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.6" fill="currentColor" stroke="none"/>
+    </svg>
+    <div>
+      <div class="insta-text">Suivez-nous sur Instagram</div>
+      <div class="insta-handle">@outside.re</div>
+    </div>
+  </a>
+
+  <footer class="foot-accueil">
+    <p class="foot-coord-sm">L'Outside &nbsp;·&nbsp; Saint-Gilles-les-Bains &nbsp;·&nbsp; Île de La Réunion</p>
+  </footer>
+</div>
+
+
+<!-- ═══ PAGE MENU DU CHEF ═══ -->
+<div id="page-chef" class="page page-menu">
+  <div class="btn-retour-wrap">
+    <button class="btn-retour" id="retour-chef">
+      <svg width="12" height="10" viewBox="0 0 12 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M5 1 L1 5 L5 9"/><line x1="1" y1="5" x2="11" y2="5"/></svg>
+      Accueil
+    </button>
+  </div>
+  <div class="wrapper">
+    <div class="cat-title-wrap">
+      <p class="cat-eyebrow">Saint-Gilles-les-Bains · Île de La Réunion</p>
+      <div class="masthead-rule" style="margin-bottom:12px;"><div class="rule-line"></div><div class="rule-cross"></div><div class="rule-line"></div></div>
+      <h2 class="cat-title">Menu du Chef</h2>
+      <p class="cat-sub">La Carte du Soir</p>
+    </div>
+
+    <div class="sep"><div class="sep-line"></div><div class="sep-body"><div class="sep-lozenge"></div><span class="sep-text">Les Petites Choses</span><div class="sep-lozenge"></div></div><div class="sep-line"></div></div>
+    <div class="grid">
+      <div class="panel span2">
+        <div class="panel-hd"><span class="panel-icon">◈</span><h2 class="panel-title">Les Petites Choses</h2><div class="panel-rule"></div></div>
+        <div class="saucisson-box"><div class="saucisson-title">Saucissons Artisanaux « Nooxx »</div><div class="saucisson-list">Fumé · Poivre · Cèpes · Comté · Truffe · Piment d'Espelette · Roquefort</div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 20px;">
+          <div>
+            <div class="dish"><div class="dish-body"><div class="dish-name">Camembert « Isigny » Rôti, Tartufata</div><div class="dish-desc">Sans Jambon 20€ · Avec Jambon Serrano 24€</div></div><div class="dish-price">20/24€</div></div>
+            <div class="dish"><div class="dish-body"><div class="dish-name">Yakitori de Volaille, Sauce Soja</div><div class="dish-desc">× 10 pièces</div></div><div class="dish-price">18€</div></div>
+            <div class="dish"><div class="dish-body"><div class="dish-name">Croustillant de Poulpe Mariné au Ponzu</div><div class="dish-desc">Sauce aïoli à la japonaise · 300g</div></div><div class="dish-price">19€</div></div>
+            <div class="dish"><div class="dish-body"><div class="dish-name">Tzatziki Grec, Finger au Saumon de Norvège en Gravlax</div></div><div class="dish-price">28€</div></div>
+          </div>
+          <div>
+            <div class="dish"><div class="dish-body"><div class="dish-name">Arancini Tartufata, Sauce Gorgonzola Truffé</div><div class="dish-desc">× 5 pièces</div></div><div class="dish-price">17€</div></div>
+            <div class="dish"><div class="dish-body"><div class="dish-name">Cromesquis de Cheddar aux Jalapeños</div><div class="dish-desc">Sauce pesto roquette au chimichurri pampeano</div></div><div class="dish-price">19€</div></div>
+            <div class="dish"><div class="dish-body"><div class="dish-name">Hakiens de Poulet &amp; Légumes, Sauce Sweet Chili</div><div class="dish-desc">× 6 pièces</div></div><div class="dish-price">18€</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel span2">
+        <div class="panel-hd"><span class="panel-icon">◈</span><h2 class="panel-title">L'Entre-Deux</h2><div class="panel-rule"></div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 20px;">
+          <div>
+            <div class="dish"><div class="dish-body"><div class="dish-name">Souskaï de Zourite à la Caribéenne</div><div class="dish-desc">Avocado sauce, chou coco</div></div><div class="dish-price">18€</div></div>
+            <div class="dish"><div class="dish-body"><div class="dish-name">Carpaccio de Bœuf à l'Italienne</div><div class="dish-desc">Œuf parfait, roquette, aceto balsamico</div></div><div class="dish-price">16/31€</div></div>
+          </div>
+          <div>
+            <div class="dish"><div class="dish-body"><div class="dish-name">Katsuobushi à la Citronnelle aux Crevettes</div><div class="dish-desc">Label rouge et foie gras poêlé, bouillon d'un Dashi</div></div><div class="dish-price">26€</div></div>
+            <div class="dish"><div class="dish-body"><div class="dish-name">Chou Craquelin aux Trompettes de la Mort</div><div class="dish-desc">Œuf parfait, foie gras poêlé et espuma de panais</div></div><div class="dish-price">18€</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel span2">
+        <div class="panel-hd"><span class="panel-icon">◈</span><h2 class="panel-title">Le Côté Chaud</h2><div class="panel-rule"></div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 20px;">
+          <div>
+            <div class="dish"><div class="dish-body"><div class="dish-name">Pappardelle aux Camarons</div><div class="dish-desc">150g · Au lait de crustacés à l'estragon</div></div><div class="dish-price">26€</div></div>
+            <div class="dish"><div class="dish-body"><div class="dish-name">Suprême de Volaille Jaune</div><div class="dish-desc">≈280g · Déclinaison du maïs, jus corsé au thym</div></div><div class="dish-price">30€</div></div>
+          </div>
+          <div>
+            <div class="dish"><div class="dish-body"><div class="dish-name">Magret de Canard Rôti</div><div class="dish-desc">≈350g · Panais, pommes grenailles et poires confites, sauce gastrique aux fruits rouges</div></div><div class="dish-price">35€</div></div>
+            <div class="dish"><div class="dish-body"><div class="dish-name">Côte de Bœuf, Maturée 14 Jours</div><div class="dish-desc">480g · Poêlée aux aromates, fricassée de pommes grenailles, champignons, sauce au poivre</div></div><div class="dish-price">55€</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel span2">
+        <div class="panel-hd"><span class="panel-icon">◈</span><h2 class="panel-title">Le Côté Sucré</h2><div class="panel-rule"></div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 20px;">
+          <div>
+            <div class="dish"><div class="dish-body"><div class="dish-name">Moelleux au Chocolat &amp; Cœur Coulant aux Fruits Rouges</div><div class="dish-desc">Sorbet et Chantilly fruits des bois</div></div><div class="dish-price">12€</div></div>
+            <div class="dish"><div class="dish-body"><div class="dish-name">Biscuit Madeleine aux Agrumes</div><div class="dish-desc">Sirop à l'huile d'olive et romarin, ganache montée Kalamansi</div></div><div class="dish-price">12€</div></div>
+          </div>
+          <div>
+            <div class="dish"><div class="dish-body"><div class="dish-name">Bavaroise au Miel, Sablé Breton Noisette</div><div class="dish-desc">Insert et glace au nougat</div></div><div class="dish-price">10€</div></div>
+            <div class="dish"><div class="dish-body"><div class="dish-name">Sphère au Praliné / Noisette, Glacée</div><div class="dish-desc">À la façon d'un Ferrero, et sa glace noisette</div></div><div class="dish-price">14€</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <footer class="foot-menu"><div class="foot-rule"><div class="foot-line"></div><div class="foot-lozenge"></div><div class="foot-line r"></div></div><p class="foot-msg">Le Chef vous souhaite une excellente dégustation</p><p class="foot-sm">21°03′S · 55°13′E · L'Outside</p></footer>
+  </div>
+</div>
+
+
+<!-- ═══ PAGE CARTE BOISSONS ═══ -->
+<div id="page-boissons" class="page page-menu">
+  <div class="btn-retour-wrap">
+    <button class="btn-retour" id="retour-boissons">
+      <svg width="12" height="10" viewBox="0 0 12 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M5 1 L1 5 L5 9"/><line x1="1" y1="5" x2="11" y2="5"/></svg>
+      Accueil
+    </button>
+  </div>
+  <div class="wrapper">
+    <div class="cat-title-wrap">
+      <p class="cat-eyebrow">Saint-Gilles-les-Bains · Île de La Réunion</p>
+      <div class="masthead-rule" style="margin-bottom:12px;"><div class="rule-line"></div><div class="rule-cross"></div><div class="rule-line"></div></div>
+      <h2 class="cat-title">Carte Boissons</h2>
+      <p class="cat-sub">Cocktails · Mocktails · Softs · Bières</p>
+    </div>
+    <div style="text-align:center;margin-bottom:28px;"><span style="font-family:'Josefin Sans',sans-serif;font-size:8px;letter-spacing:3px;text-transform:uppercase;color:rgba(168,128,58,.45);">☀️ tarif jour &nbsp;·&nbsp; 🌙 tarif nuit</span></div>
+
+    <div class="sep"><div class="sep-line"></div><div class="sep-body"><div class="sep-lozenge"></div><span class="sep-text">Cocktails Classiques</span><div class="sep-lozenge"></div></div><div class="sep-line"></div></div>
+    <div class="grid">
+      <div class="panel">
+        <div class="panel-hd"><span class="panel-icon">⬡</span><h2 class="panel-title">Classique</h2><div class="panel-rule"></div></div>
+        <div class="price-legend">☀️ / 🌙</div>
+        <div class="cocktail"><div class="ck-head"><span class="ck-name">Mojito Cubain <span class="ck-vol">12cl</span></span><span class="ck-price">11€/14€</span></div><div class="ck-desc">Rhum Havana Club 3ans, Menthe, Citron, Eau pétillante</div></div>
+        <div class="cocktail"><div class="ck-head"><span class="ck-name">Caïpi <span class="ck-vol">6cl</span></span><span class="ck-price">10€/12€</span></div><div class="ck-desc">Cachaça Ypicoca Ouro, Citron vert, Cassonade</div></div>
+        <div class="cocktail"><div class="ck-head"><span class="ck-name">Ti Punch <span class="ck-vol">6cl</span></span><span class="ck-price">10€/12€</span></div><div class="ck-desc">Rhum Savanna Créol 52%, Citron vert, Cassonade</div></div>
+        <div class="cocktail"><div class="ck-head"><span class="ck-name">Kaloo <span class="ck-vol">6cl</span></span><span class="ck-price">10€/12€</span></div><div class="ck-desc">Rhum Isautier Barrik, Citron vert, Cassonade</div></div>
+        <div class="cocktail"><div class="ck-head"><span class="ck-name">Moscow Mule <span class="ck-vol">12cl</span></span><span class="ck-price">12€/14€</span></div><div class="ck-desc">Vodka Smirnoff, Citron, Ginger Beer maison</div></div>
+        <div class="cocktail"><div class="ck-head"><span class="ck-name">Daïkiri <span class="ck-vol">8cl</span></span><span class="ck-price">12€/14€</span></div><div class="ck-desc">Rhum Savanna Créol 52%, Sucre, Citron</div></div>
+        <div class="cocktail"><div class="ck-head"><span class="ck-name">Maï Taï <span class="ck-vol">10cl</span></span><span class="ck-price">12€/14€</span></div><div class="ck-desc">Rhum Savanna Créol 52%, Rhum Isautier Barrik, Sirop Orgeat, Triple Sec, Citron</div></div>
+        <div class="cocktail"><div class="ck-head"><span class="ck-name">Negroni <span class="ck-vol">8cl</span></span><span class="ck-price">14€/16€</span></div><div class="ck-desc">Gin Tanqueray, Martini Rosso, Campari</div></div>
+        <div class="cocktail"><div class="ck-head"><span class="ck-name">Old Fashioned <span class="ck-vol">8cl</span></span><span class="ck-price">14€/16€</span></div><div class="ck-desc">Whiskey Bulleit, Cassonade, Angostura, Orange</div></div>
+        <div class="cocktail"><div class="ck-head"><span class="ck-name">Cosmo <span class="ck-vol">12cl</span></span><span class="ck-price">10€/12€</span></div><div class="ck-desc">Vodka, Triple Sec, Jus de Cranberry, Citron</div></div>
+        <div class="cocktail"><div class="ck-head"><span class="ck-name">Porn Star Martini <span class="ck-vol">12cl</span></span><span class="ck-price">14€/16€</span></div><div class="ck-desc">Vodka Smirnoff, Prosecco, Purée de Passion, Sirop de Vanille, Citron, Blanc d'Œuf, Shot de Champagne</div></div>
+        <div class="cocktail"><div class="ck-head"><span class="ck-name">Margarita <span class="ck-vol">8cl</span></span><span class="ck-price">12€/14€</span></div><div class="ck-desc">Tequila Olmeca, Triple Sec, Citron, Sel</div></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-hd"><span class="panel-icon">⬡</span><h2 class="panel-title">Signature</h2><div class="panel-rule"></div></div>
+        <div class="price-legend">☀️ / 🌙</div>
+        <div class="cocktail"><div class="ck-head"><span class="ck-name">Cinnasion <span class="ck-vol">12cl</span></span><span class="ck-price">15€/18€</span></div><div class="ck-desc">Rhum Plantation Pineapple, Passion, Citron vert, Sirop de Cannelle, Bitter Tropical</div></div>
+        <div class="cocktail"><div class="ck-head"><span class="ck-name">Gimitea <span class="ck-vol">18cl</span></span><span class="ck-price">14€/16€</span></div><div class="ck-desc">Gin Bombay infusé à la Menthe Tea, Thé, Citron, Sucre, Bitter Florale maison</div></div>
+        <div class="cocktail"><div class="ck-head"><span class="ck-name">Notre-Dame <span class="ck-vol">16cl</span></span><span class="ck-price">15€/18€</span></div><div class="ck-desc">St-Germain, Rosé, Sirop de Pamplemousse, Eau pétillante</div></div>
+        <div class="cocktail"><div class="ck-head"><span class="ck-name">Jager Break Fast <span class="ck-vol">6cl</span></span><span class="ck-price">14€/16€</span></div><div class="ck-desc">Jäger, Citron, Sucre, Blanc d'Œuf, Bitter Chocolat</div></div>
+        <div class="cocktail"><div class="ck-head"><span class="ck-name">Jardin d'Eden <span class="ck-vol">14cl</span></span><span class="ck-price">15€/18€</span></div><div class="ck-desc">Tequila Olmeca, Cannelle, Agave, Citron, Jus de Pomme, Bitter Mexicain</div></div>
+        <div class="cocktail"><div class="ck-head"><span class="ck-name">Texas Mule <span class="ck-vol">12cl</span></span><span class="ck-price">14€/16€</span></div><div class="ck-desc">Jack Daniel's, Jus de Pomme, Ginger Beer maison, Citron</div></div>
+      </div>
+
+      <div class="panel span2">
+        <div class="panel-hd"><span class="panel-icon">⬡</span><h2 class="panel-title">Outside The Box</h2><div class="panel-rule"></div></div>
+        <div class="price-legend">☀️ / 🌙</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 28px;">
+          <div>
+            <div class="cocktail"><div class="ck-head"><span class="ck-name">Trompe-L'Œil Mojito <span class="ck-vol">15cl</span></span><span class="ck-price">12€/14€</span></div><div class="ck-desc">Gin Tanqueray, Citron vert, Kiwi, Eau pétillante, Basilic, Citron</div></div>
+            <div class="cocktail"><div class="ck-head"><span class="ck-name">Ti Punch Sapoïk <span class="ck-vol">10cl</span></span><span class="ck-price">12€/14€</span></div><div class="ck-desc">Savanna Créol 52%, Citron vert, Purée de Mangue au Gros Piment</div></div>
+            <div class="cocktail"><div class="ck-head"><span class="ck-name">Kalou Sapoïk <span class="ck-vol">10cl</span></span><span class="ck-price">12€/14€</span></div><div class="ck-desc">Isautier Barrik, Citron vert, Purée de Mangue au Gros Piment</div></div>
+          </div>
+          <div>
+            <div class="cocktail"><div class="ck-head"><span class="ck-name">Caïpi Sapoïk <span class="ck-vol">10cl</span></span><span class="ck-price">12€/14€</span></div><div class="ck-desc">Cachaça, Citron vert, Purée de Mangue au Gros Piment, Cassonade</div></div>
+            <div class="cocktail"><div class="ck-head"><span class="ck-name">Mexican Stars <span class="ck-vol">12cl</span></span><span class="ck-price">15€/18€</span></div><div class="ck-desc">Tequila Don Julio, Blanc d'Œuf, Shot de Bière, Passion, Sirop de Vanille, Citron</div></div>
+            <div class="cocktail"><div class="ck-head"><span class="ck-name">Douceur Nocturne <span class="ck-vol">18cl</span></span><span class="ck-price">14€/16€</span></div><div class="ck-desc">Vodka Smirnoff, Eau pétillante, Citron, Lavande, Fruits Rouges</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sep"><div class="sep-line"></div><div class="sep-body"><div class="sep-lozenge"></div><span class="sep-text">Mocktails &amp; Softs</span><div class="sep-lozenge"></div></div><div class="sep-line"></div></div>
+    <div class="grid">
+      <div class="panel">
+        <div class="panel-hd"><span class="panel-icon">⬡</span><h2 class="panel-title">Mocktails</h2><div class="panel-rule"></div></div>
+        <div class="price-legend">☀️ / 🌙</div>
+        <div class="cocktail"><div class="ck-head"><span class="ck-name">Virgin Mojito <span class="ck-vol">15cl</span></span><span class="ck-price">7€/8€</span></div><div class="ck-desc">Citron vert, Menthe, Cassonade, Eau gazeuse</div></div>
+        <div class="cocktail"><div class="ck-head"><span class="ck-name">Fresh Freez <span class="ck-vol">16cl</span></span><span class="ck-price">9€/11€</span></div><div class="ck-desc">Citron vert, Menthe fraîche, Miel, Citron, Concombre, Eau pétillante</div></div>
+        <div class="cocktail"><div class="ck-head"><span class="ck-name">ACP <span class="ck-vol">16cl</span></span><span class="ck-price">9€/11€</span></div><div class="ck-desc">Jus de Pomme, Jus d'Ananas, Sirop de Cannelle, Citron</div></div>
+        <div class="cocktail"><div class="ck-head"><span class="ck-name">Summer Island <span class="ck-vol">12cl</span></span><span class="ck-price">9€/11€</span></div><div class="ck-desc">Jus de Cranberry, Basilic, Citron, Purée de Fraise, Sirop d'Agave</div></div>
+        <div class="cocktail"><div class="ck-head"><span class="ck-name">Thé Glacé Maison <span class="ck-vol">18cl</span></span><span class="ck-price">7€/8€</span></div><div class="ck-desc">Selon arrivage</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-hd"><span class="panel-icon">⬡</span><h2 class="panel-title">Softs &amp; Eaux</h2><div class="panel-rule"></div></div>
+        <div class="price-legend">☀️ / 🌙</div>
+        <div class="sub-label">Sodas</div>
+        <div class="beer-row"><span class="beer-name">Perrier <span class="beer-vol">33cl</span></span><span class="beer-price">5€/5€</span></div>
+        <div class="beer-row"><span class="beer-name">Coca <span class="beer-vol">30cl</span></span><span class="beer-price">5€/5€</span></div>
+        <div class="beer-row"><span class="beer-name">Coca Zéro <span class="beer-vol">25cl</span></span><span class="beer-price">5€/5€</span></div>
+        <div class="beer-row"><span class="beer-name">Orangina <span class="beer-vol">25cl</span></span><span class="beer-price">5€/5€</span></div>
+        <div class="beer-row"><span class="beer-name">Energy <span class="beer-vol">25cl</span></span><span class="beer-price">5€/5€</span></div>
+        <div class="beer-row"><span class="beer-name">Sprite <span class="beer-vol">25cl</span></span><span class="beer-price">5€/5€</span></div>
+        <div class="beer-row"><span class="beer-name">Goldberg Tonic <span class="beer-vol">25cl</span></span><span class="beer-price">5€/5€</span></div>
+        <div class="sub-label">Jus</div>
+        <div class="beer-row"><span class="beer-name">Granini <span class="beer-vol">25cl</span></span><span class="beer-price">5€/5€</span></div>
+        <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11.5px;color:rgba(240,232,208,.3);padding:2px 0 8px;">Tomate · Pêche · Orange · Abricot · Ananas</div>
+        <div class="sub-label">Eaux</div>
+        <div class="beer-row"><span class="beer-name">San Benedetto Plate <span class="beer-vol">75cl</span></span><span class="beer-price">6€/6€</span></div>
+        <div class="beer-row"><span class="beer-name">San Benedetto Pétillante <span class="beer-vol">75cl</span></span><span class="beer-price">6€/6€</span></div>
+      </div>
+      <div class="panel">
+        <div class="panel-hd"><span class="panel-icon">⬡</span><h2 class="panel-title">Apéritifs</h2><div class="panel-rule"></div></div>
+        <div class="price-legend">☀️ / 🌙</div>
+        <div class="beer-row"><span class="beer-name">Martini Bianco <span class="beer-vol">6cl</span></span><span class="beer-price">7€/9€</span></div>
+        <div class="beer-row"><span class="beer-name">Martini Rosso <span class="beer-vol">6cl</span></span><span class="beer-price">7€/9€</span></div>
+        <div class="beer-row"><span class="beer-name">Pastis 51 <span class="beer-vol">4cl</span></span><span class="beer-price">7€/9€</span></div>
+        <div class="beer-row"><span class="beer-name">Ricard <span class="beer-vol">4cl</span></span><span class="beer-price">7€/9€</span></div>
+        <div class="beer-row"><span class="beer-name">Malibu <span class="beer-vol">4cl</span></span><span class="beer-price">10€/12€</span></div>
+        <div class="sub-label">Shooters 3cl</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px 10px;">
+          <div class="beer-row"><span class="beer-name" style="font-size:12.5px;">Get 27</span><span class="beer-price">5€/6€</span></div>
+          <div class="beer-row"><span class="beer-name" style="font-size:12.5px;">Vodka Get</span><span class="beer-price">5€/6€</span></div>
+          <div class="beer-row"><span class="beer-name" style="font-size:12.5px;">Orgasme</span><span class="beer-price">5€/6€</span></div>
+          <div class="beer-row"><span class="beer-name" style="font-size:12.5px;">Jäger</span><span class="beer-price">5€/6€</span></div>
+          <div class="beer-row"><span class="beer-name" style="font-size:12.5px;">Kamikaz</span><span class="beer-price">5€/6€</span></div>
+          <div class="beer-row"><span class="beer-name" style="font-size:12.5px;">Tequila</span><span class="beer-price">5€/6€</span></div>
+          <div class="beer-row"><span class="beer-name" style="font-size:12.5px;">Tek Paf</span><span class="beer-price">5€/6€</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-hd"><span class="panel-icon">⬡</span><h2 class="panel-title">Digestifs</h2><div class="panel-rule"></div></div>
+        <div class="sp-header"><span class="sp-h"></span><span class="sp-h">☀️/🌙 Verre 4cl</span><span class="sp-h">Btl</span></div>
+        <div class="sp-row"><span class="sp-name">Bailey's</span><span class="sp-glass">10€/12€</span><span class="sp-btl">110€/120€</span></div>
+        <div class="sp-row"><span class="sp-name">Absinthe</span><span class="sp-glass">12€/15€</span><span class="sp-btl">—</span></div>
+        <div class="sp-row"><span class="sp-name">Cognac Hennessy</span><span class="sp-glass">15€/17€</span><span class="sp-btl">155€/175€</span></div>
+        <div class="sp-row"><span class="sp-name">Get 27</span><span class="sp-glass">10€/12€</span><span class="sp-btl">110€/130€</span></div>
+        <div class="sp-row"><span class="sp-name">Jäger</span><span class="sp-glass">—</span><span class="sp-btl">110€/120€</span></div>
+      </div>
+    </div>
+
+    <div class="sep"><div class="sep-line"></div><div class="sep-body"><div class="sep-lozenge"></div><span class="sep-text">Bières</span><div class="sep-lozenge"></div></div><div class="sep-line"></div></div>
+    <div class="grid">
+      <div class="panel span2">
+        <div class="panel-hd"><span class="panel-icon">⬡</span><h2 class="panel-title">Pressions</h2><div class="panel-rule"></div></div>
+        <div class="sp-header"><span class="sp-h"></span><span class="sp-h">25cl ☀️/🌙</span><span class="sp-h">50cl ☀️/🌙</span></div>
+        <div class="sp-row"><span class="sp-name">Leffe Blonde</span><span class="sp-glass">5.5€/7.5€</span><span class="sp-btl">9.5€/12€</span></div>
+        <div class="sp-row"><span class="sp-name">Leffe Ruby</span><span class="sp-glass">6€/8€</span><span class="sp-btl">10€/13€</span></div>
+        <div class="sp-row"><span class="sp-name">Hoegaarden</span><span class="sp-glass">5.5€/7.5€</span><span class="sp-btl">9.5€/12€</span></div>
+        <div class="sp-row"><span class="sp-name">Bud</span><span class="sp-glass">4.5€/7€</span><span class="sp-btl">7.5€/11€</span></div>
+        <div class="sp-row"><span class="sp-name">Spot 7</span><span class="sp-glass">7€/9€</span><span class="sp-btl">12€/15€</span></div>
+        <div class="sub-label">Bouteilles</div>
+        <div class="sp-row"><span class="sp-name">Dalons IPA <span style="font-family:'Josefin Sans',sans-serif;font-size:7.5px;color:rgba(168,128,58,.4);">33cl</span></span><span class="sp-glass">7€</span><span class="sp-btl">10€</span></div>
+        <div class="sp-row"><span class="sp-name">Corona <span style="font-family:'Josefin Sans',sans-serif;font-size:7.5px;color:rgba(168,128,58,.4);">35.5cl</span></span><span class="sp-glass">7€</span><span class="sp-btl">10€</span></div>
+        <div class="sp-row"><span class="sp-name">Heineken <span style="font-family:'Josefin Sans',sans-serif;font-size:7.5px;color:rgba(168,128,58,.4);">33cl</span></span><span class="sp-glass">6€</span><span class="sp-btl">9€</span></div>
+      </div>
+    </div>
+
+    <div class="sep"><div class="sep-line"></div><div class="sep-body"><div class="sep-lozenge"></div><span class="sep-text">Champagne — Coupe</span><div class="sep-lozenge"></div></div><div class="sep-line"></div></div>
+    <div class="grid">
+      <div class="panel span2">
+        <div class="panel-hd"><span class="panel-icon">⬡</span><h2 class="panel-title">Coupe</h2><div class="panel-rule"></div></div>
+        <div class="price-legend">☀️ / 🌙</div>
+        <div class="ch-row"><span class="ch-name">Collet Brut <span style="font-family:'Josefin Sans',sans-serif;font-size:7.5px;opacity:.4;">10cl</span></span><span class="ch-price">13€/16€</span></div>
+        <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:12px;color:rgba(240,232,208,.28);margin-top:8px;">Pour les bouteilles de champagne → Carte Bouteilles</div>
+      </div>
+    </div>
+
+    <footer class="foot-menu"><div class="foot-rule"><div class="foot-line"></div><div class="foot-lozenge"></div><div class="foot-line r"></div></div><p class="foot-msg">Santé &amp; bonne dégustation</p><p class="foot-sm">21°03′S · 55°13′E · L'Outside</p></footer>
+  </div>
+</div>
+
+
+<!-- ═══ PAGE BOUTEILLES ═══ -->
+<div id="page-bouteilles" class="page page-menu">
+  <div class="btn-retour-wrap">
+    <button class="btn-retour" id="retour-bouteilles">
+      <svg width="12" height="10" viewBox="0 0 12 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M5 1 L1 5 L5 9"/><line x1="1" y1="5" x2="11" y2="5"/></svg>
+      Accueil
+    </button>
+  </div>
+  <div class="wrapper">
+    <div class="cat-title-wrap">
+      <p class="cat-eyebrow">Saint-Gilles-les-Bains · Île de La Réunion</p>
+      <div class="masthead-rule" style="margin-bottom:12px;"><div class="rule-line"></div><div class="rule-cross"></div><div class="rule-line"></div></div>
+      <h2 class="cat-title">Bouteilles</h2>
+      <p class="cat-sub">Spiritueux · Rhums · Vins · Champagne</p>
+    </div>
+    <div style="text-align:center;margin-bottom:28px;"><span style="font-family:'Josefin Sans',sans-serif;font-size:8px;letter-spacing:3px;text-transform:uppercase;color:rgba(168,128,58,.45);">☀️ tarif jour &nbsp;·&nbsp; 🌙 tarif nuit</span></div>
+
+    <!-- VERRES SPIRITUEUX -->
+    <div class="sep"><div class="sep-line"></div><div class="sep-body"><div class="sep-lozenge"></div><span class="sep-text">Verres — Spiritueux 4cl</span><div class="sep-lozenge"></div></div><div class="sep-line"></div></div>
+    <div class="grid">
+      <div class="panel">
+        <div class="panel-hd"><span class="panel-icon">⬡</span><h2 class="panel-title">Vodka</h2><div class="panel-rule"></div></div>
+        <div class="sp-header"><span class="sp-h"></span><span class="sp-h">☀️/🌙</span><span class="sp-h"></span></div>
+        <div class="sp-row"><span class="sp-name">Grey Goose</span><span class="sp-glass">15€/17€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Belvedere</span><span class="sp-glass">15€/17€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Smirnoff</span><span class="sp-glass">10€/12€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Ketel One</span><span class="sp-glass">11€/13€</span><span class="sp-btl"></span></div>
+      </div>
+      <div class="panel">
+        <div class="panel-hd"><span class="panel-icon">⬡</span><h2 class="panel-title">Gin</h2><div class="panel-rule"></div></div>
+        <div class="sp-header"><span class="sp-h"></span><span class="sp-h">☀️/🌙</span><span class="sp-h"></span></div>
+        <div class="sp-row"><span class="sp-name">Bombay Original</span><span class="sp-glass">10€/12€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Bombay Sapphire</span><span class="sp-glass">11€/13€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Tanqueray</span><span class="sp-glass">11€/13€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Tanqueray N°Ten</span><span class="sp-glass">14€/16€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Hendricks</span><span class="sp-glass">14€/16€</span><span class="sp-btl"></span></div>
+      </div>
+      <div class="panel">
+        <div class="panel-hd"><span class="panel-icon">⬡</span><h2 class="panel-title">Whisky</h2><div class="panel-rule"></div></div>
+        <div class="sp-header"><span class="sp-h"></span><span class="sp-h">☀️/🌙</span><span class="sp-h"></span></div>
+        <div class="sp-row"><span class="sp-name">JW Black Label</span><span class="sp-glass">10€/12€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Jack Daniel's</span><span class="sp-glass">11€/14€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Jack Apple</span><span class="sp-glass">11€/14€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Jack Honey</span><span class="sp-glass">11€/14€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Bulleit</span><span class="sp-glass">12€/15€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Chivas</span><span class="sp-glass">12€/15€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Jameson</span><span class="sp-glass">11€/13€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Woodford Reserve</span><span class="sp-glass">15€/19€</span><span class="sp-btl"></span></div>
+      </div>
+      <div class="panel">
+        <div class="panel-hd"><span class="panel-icon">⬡</span><h2 class="panel-title">Tequila</h2><div class="panel-rule"></div></div>
+        <div class="sp-header"><span class="sp-h"></span><span class="sp-h">☀️/🌙</span><span class="sp-h"></span></div>
+        <div class="sp-row"><span class="sp-name">Don Julio Blanco</span><span class="sp-glass">15€/19€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Olmeca Blanco</span><span class="sp-glass">10€/12€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Patron Reposado</span><span class="sp-glass">20€/24€</span><span class="sp-btl"></span></div>
+      </div>
+    </div>
+
+    <!-- BOUTEILLES SPIRITUEUX -->
+    <div class="sep"><div class="sep-line"></div><div class="sep-body"><div class="sep-lozenge"></div><span class="sep-text">Bouteilles — Spiritueux</span><div class="sep-lozenge"></div></div><div class="sep-line"></div></div>
+    <div class="grid">
+      <div class="panel">
+        <div class="panel-hd"><span class="panel-icon">⬡</span><h2 class="panel-title">Vodka — Bouteilles</h2><div class="panel-rule"></div></div>
+        <div class="sp-header"><span class="sp-h"></span><span class="sp-h">Format</span><span class="sp-h">☀️/🌙</span></div>
+        <div class="sp-row"><span class="sp-name">Absolut</span><span class="sp-glass">70cl</span><span class="sp-btl">110€/130€</span></div>
+        <div class="sp-row"><span class="sp-name">Grey Goose</span><span class="sp-glass">75cl</span><span class="sp-btl">155€/180€</span></div>
+        <div class="sp-row"><span class="sp-name">Grey Goose</span><span class="sp-glass">1.75L</span><span class="sp-btl">360€/410€</span></div>
+        <div class="sp-row"><span class="sp-name">Grey Goose</span><span class="sp-glass">3L</span><span class="sp-btl">650€/850€</span></div>
+        <div class="sp-row"><span class="sp-name">Belvedere</span><span class="sp-glass">70cl</span><span class="sp-btl">155€/175€</span></div>
+        <div class="sp-row"><span class="sp-name">Belvedere</span><span class="sp-glass">1.75L</span><span class="sp-btl">370€/420€</span></div>
+        <div class="sp-row"><span class="sp-name">Belvedere</span><span class="sp-glass">3L</span><span class="sp-btl">690€/890€</span></div>
+      </div>
+      <div class="panel">
+        <div class="panel-hd"><span class="panel-icon">⬡</span><h2 class="panel-title">Gin · Whisky · Tequila — Btl</h2><div class="panel-rule"></div></div>
+        <div class="sp-header"><span class="sp-h"></span><span class="sp-h">70cl ☀️/🌙</span><span class="sp-h"></span></div>
+        <div class="sub-label">Gin</div>
+        <div class="sp-row"><span class="sp-name">Bombay Original</span><span class="sp-glass">110€/120€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Bombay Sapphire</span><span class="sp-glass">120€/130€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Beefeater</span><span class="sp-glass">110€/120€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Tanqueray</span><span class="sp-glass">120€/130€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Tanqueray N°Ten</span><span class="sp-glass">150€/170€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Hendricks</span><span class="sp-glass">170€/190€</span><span class="sp-btl"></span></div>
+        <div class="sub-label">Whisky</div>
+        <div class="sp-row"><span class="sp-name">JW Black Label</span><span class="sp-glass">110€/120€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">JW Black Ruby</span><span class="sp-glass">130€/150€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Jack Daniel's</span><span class="sp-glass">130€/150€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Jack Apple</span><span class="sp-glass">130€/150€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Jack Honey</span><span class="sp-glass">120€/140€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Bulleit</span><span class="sp-glass">120€/140€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Chivas</span><span class="sp-glass">130€/150€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Jameson</span><span class="sp-glass">130€/150€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Woodford Reserve</span><span class="sp-glass">220€/260€</span><span class="sp-btl"></span></div>
+        <div class="sub-label">Tequila</div>
+        <div class="sp-row"><span class="sp-name">Don Julio Blanco</span><span class="sp-glass">190€/210€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Olmeca Blanco</span><span class="sp-glass">110€/120€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Patron Reposado</span><span class="sp-glass">260€/280€</span><span class="sp-btl"></span></div>
+      </div>
+    </div>
+
+    <!-- RHUM -->
+    <div class="sep"><div class="sep-line"></div><div class="sep-body"><div class="sep-lozenge"></div><span class="sep-text">Rhum</span><div class="sep-lozenge"></div></div><div class="sep-line"></div></div>
+    <div class="grid">
+      <div class="panel">
+        <div class="panel-hd"><span class="panel-icon">⬡</span><h2 class="panel-title">Verres 4cl</h2><div class="panel-rule"></div></div>
+        <div class="sp-header"><span class="sp-h"></span><span class="sp-h">☀️/🌙</span><span class="sp-h"></span></div>
+        <div class="sp-row"><span class="sp-name">Havana Club 3ans</span><span class="sp-glass">10€/12€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Savanna Créol 52%</span><span class="sp-glass">10€/12€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Savanna Métis</span><span class="sp-glass">10€/12€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Zacapa 25ans</span><span class="sp-glass">16€/20€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Plantation Pineapple</span><span class="sp-glass">13€/16€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Coloma</span><span class="sp-glass">13€/16€</span><span class="sp-btl"></span></div>
+      </div>
+      <div class="panel">
+        <div class="panel-hd"><span class="panel-icon">⬡</span><h2 class="panel-title">Bouteilles 70cl</h2><div class="panel-rule"></div></div>
+        <div class="sp-header"><span class="sp-h"></span><span class="sp-h">☀️/🌙</span><span class="sp-h"></span></div>
+        <div class="sp-row"><span class="sp-name">Havana Club 3ans</span><span class="sp-glass">110€/120€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Savanna Créol 52%</span><span class="sp-glass">120€/140€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Savanna Métis</span><span class="sp-glass">120€/140€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Zacapa 25ans</span><span class="sp-glass">220€/260€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Plantation Pineapple</span><span class="sp-glass">160€/180€</span><span class="sp-btl"></span></div>
+        <div class="sp-row"><span class="sp-name">Coloma</span><span class="sp-glass">180€/210€</span><span class="sp-btl"></span></div>
+        <div class="sub-label">Rhums Arrangés — 3cl</div>
+        <div class="beer-row"><span class="beer-name">Ananas Piment</span><span class="beer-price">5€/6€</span></div>
+        <div class="beer-row"><span class="beer-name">Ananas Pitaya</span><span class="beer-price">5€/6€</span></div>
+        <div class="beer-row"><span class="beer-name">Concombre</span><span class="beer-price">5€/6€</span></div>
+        <div class="beer-row"><span class="beer-name">Fraise Basilic</span><span class="beer-price">5€/6€</span></div>
+        <div class="beer-row"><span class="beer-name">Mafane</span><span class="beer-price">5€/6€</span></div>
+      </div>
+    </div>
+
+    <!-- VINS -->
+    <div class="sep"><div class="sep-line"></div><div class="sep-body"><div class="sep-lozenge"></div><span class="sep-text">Les Vins</span><div class="sep-lozenge"></div></div><div class="sep-line"></div></div>
+    <div class="grid">
+      <div class="panel span2">
+        <div class="panel-hd"><span class="panel-icon">⬡</span><h2 class="panel-title">Vins Rouges — 12cl / 75cl</h2><div class="panel-rule"></div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 28px;">
+          <div>
+            <div class="wine"><div class="w-name">Bistro</div><div class="w-price">7€/33€</div><div class="w-appel">Pinot Noir · 2023</div></div>
+            <div class="wine"><div class="w-name">Côtes de Brouilly, Les Esnards</div><div class="w-price">9€/45€</div><div class="w-appel">Beaujolais · 2022</div></div>
+            <div class="wine"><div class="w-name">Chianti, Crono <em>Italie</em></div><div class="w-price">9€/50€</div><div class="w-appel">2021</div></div>
+            <div class="wine"><div class="w-name">Cahors, Croizillon</div><div class="w-price">9€/50€</div><div class="w-appel">Malbec · 2022</div></div>
+            <div class="wine"><div class="w-name">Viento Sur <em>Argentine</em></div><div class="w-price">9€/50€</div><div class="w-appel">Malbec · 2023</div></div>
+            <div class="wine"><div class="w-name">Pic Saint-Loup, AN 1189</div><div class="w-price">10€/50€</div><div class="w-appel">Languedoc · 2024</div></div>
+          </div>
+          <div>
+            <div class="wine"><div class="w-name">Saint-Joseph, Domaine Durand</div><div class="w-price">13€/64€</div><div class="w-appel">Côtes du Rhône · 2023</div></div>
+            <div class="wine"><div class="w-name">Margaux, Marquis de Mons</div><div class="w-price">13€/64€</div><div class="w-appel">Bordeaux · 2018</div></div>
+            <div class="wine"><div class="w-name">Hautes-Côtes de Beaune</div><div class="w-price">13€/70€</div><div class="w-appel">Bourgogne · 2022</div></div>
+            <div class="wine"><div class="w-name">Chasse Spleen, Héritage</div><div class="w-price">14€/85€</div><div class="w-appel">Haut Médoc · 2019</div></div>
+            <div class="wine"><div class="w-name">St-Estèphe, Ch. Lilian Ladouys</div><div class="w-price">100€</div><div class="w-appel">2016</div></div>
+            <div class="wine"><div class="w-name">St-Émilion, Ch. Montlabert</div><div class="w-price">115€</div><div class="w-appel">Grand Cru · 2020</div></div>
+            <div class="wine"><div class="w-name">Santenay, Nuits-Saint-Georges</div><div class="w-price">170€</div><div class="w-appel">1er Cru · 2023</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-hd"><span class="panel-icon">⬡</span><h2 class="panel-title">Vins Blancs</h2><div class="panel-rule"></div></div>
+        <div class="wine"><div class="w-name">Chardonnay, Cuvée Secrète</div><div class="w-price">8€/35€</div><div class="w-appel">Pays d'Oc · 2025</div></div>
+        <div class="wine"><div class="w-name">Tariquet, 1ères Grives <em>(Moelleux)</em></div><div class="w-price">8€/45€</div><div class="w-appel">Côtes de Gascogne · 2023</div></div>
+        <div class="wine"><div class="w-name">Petit Chablis</div><div class="w-price">10€/55€</div><div class="w-appel">2023</div></div>
+        <div class="wine"><div class="w-name">Pouilly Fumé</div><div class="w-price">10€/56€</div><div class="w-appel">Val de Loire · 2023</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-hd"><span class="panel-icon">⬡</span><h2 class="panel-title">Vins Rosés</h2><div class="panel-rule"></div></div>
+        <div class="wine"><div class="w-name">Gris Blanc</div><div class="w-price">7€/36€</div><div class="w-appel">Languedoc · 2024</div></div>
+        <div class="wine"><div class="w-name">Minuty</div><div class="w-price">10€/55€</div><div class="w-appel">Côtes de Provence · 2024</div></div>
+        <div class="sub-label">Magnums 1.5L</div>
+        <div class="wine"><div class="w-name">Gris Blanc Magnum</div><div class="w-price">80€</div><div class="w-appel">Languedoc · 2024</div></div>
+        <div class="wine"><div class="w-name">Minuty Magnum</div><div class="w-price">110€</div><div class="w-appel">Côtes de Provence · 2024</div></div>
+        <div class="wine-vip"><div class="vip-badge">✦ En Exclusivité ✦</div><div class="vip-name">Clos du Temple</div><div class="vip-appel">Gérard Bertrand · Languedoc · 2023</div><div class="vip-price">450€</div><div class="vip-note">Élu meilleur rosé du monde 3 années de suite</div></div>
+      </div>
+    </div>
+
+    <!-- CHAMPAGNE BOUTEILLES -->
+    <div class="sep"><div class="sep-line"></div><div class="sep-body"><div class="sep-lozenge"></div><span class="sep-text">Champagne — Bouteilles</span><div class="sep-lozenge"></div></div><div class="sep-line"></div></div>
+    <div class="grid">
+      <div class="panel">
+        <div class="panel-hd"><span class="panel-icon">⬡</span><h2 class="panel-title">Moët &amp; Chandon</h2><div class="panel-rule"></div></div>
+        <div class="price-legend">☀️ / 🌙</div>
+        <div class="ch-row"><span class="ch-name">Brut 75cl</span><span class="ch-price">130€/160€</span></div>
+        <div class="ch-row"><span class="ch-name">Rosé 75cl</span><span class="ch-price">170€/210€</span></div>
+        <div class="ch-row"><span class="ch-name">Nectar Impérial</span><span class="ch-price">150€/180€</span></div>
+        <div class="ch-row"><span class="ch-name">Brut Magnum 150cl</span><span class="ch-price">330€/350€</span></div>
+        <div class="ch-row"><span class="ch-name">Nectar Impérial Magnum</span><span class="ch-price">340€/400€</span></div>
+      </div>
+      <div class="panel">
+        <div class="panel-hd"><span class="panel-icon">⬡</span><h2 class="panel-title">Ruinart</h2><div class="panel-rule"></div></div>
+        <div class="price-legend">☀️ / 🌙</div>
+        <div class="ch-row"><span class="ch-name">Brut 75cl</span><span class="ch-price">220€/260€</span></div>
+        <div class="ch-row"><span class="ch-name">Brut Magnum 150cl</span><span class="ch-price">430€/480€</span></div>
+        <div class="ch-row"><span class="ch-name">Blanc de Blancs 75cl</span><span class="ch-price">270€/330€</span></div>
+        <div class="ch-row"><span class="ch-name">Blanc de Blancs Magnum</span><span class="ch-price">560€/660€</span></div>
+        <div class="ch-row"><span class="ch-name">Rosé 75cl</span><span class="ch-price">270€/330€</span></div>
+      </div>
+      <div class="panel">
+        <div class="panel-hd"><span class="panel-icon">⬡</span><h2 class="panel-title">Veuve Clicquot</h2><div class="panel-rule"></div></div>
+        <div class="price-legend">☀️ / 🌙</div>
+        <div class="ch-row"><span class="ch-name">Brut 75cl</span><span class="ch-price">145€/175€</span></div>
+        <div class="ch-row"><span class="ch-name">Brut Magnum 150cl</span><span class="ch-price">330€/390€</span></div>
+        <div class="ch-row"><span class="ch-name">Rosé 75cl</span><span class="ch-price">190€/230€</span></div>
+      </div>
+      <div class="panel">
+        <div class="panel-hd"><span class="panel-icon">⬡</span><h2 class="panel-title">Prestige &amp; Formats</h2><div class="panel-rule"></div></div>
+        <div class="price-legend">☀️ / 🌙</div>
+        <div class="sub-label">Dom Pérignon</div>
+        <div class="ch-row"><span class="ch-name">75cl</span><span class="ch-price">580€/650€</span></div>
+        <div class="sub-label">Armand de Brignac</div>
+        <div class="ch-row"><span class="ch-name">75cl</span><span class="ch-price">800€/1000€</span></div>
+        <div class="sub-label">Grands Formats</div>
+        <div class="ch-row"><span class="ch-name">Jéroboam 3L</span><span class="ch-price">800€/900€</span></div>
+        <div class="ch-row"><span class="ch-name">Salmanazar 9L</span><span class="ch-price">2200€</span></div>
+      </div>
+    </div>
+
+    <footer class="foot-menu"><div class="foot-rule"><div class="foot-line"></div><div class="foot-lozenge"></div><div class="foot-line r"></div></div><p class="foot-msg">Le Chef vous souhaite une excellente dégustation</p><p class="foot-sm">21°03′S · 55°13′E · L'Outside</p></footer>
+  </div>
+</div>
+
+
+<script>
+function showPage(id) {
+  var all = document.querySelectorAll('.page');
+  for (var i = 0; i < all.length; i++) all[i].classList.remove('active');
+  var t = document.getElementById(id);
+  if (t) t.classList.add('active');
+  window.scrollTo(0, 0);
+  document.body.scrollTop = 0;
+  document.documentElement.scrollTop = 0;
+}
+
+function bindBtn(id, page) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener('click', function(e) { e.preventDefault(); showPage(page); });
+  el.addEventListener('touchstart', function(e) { e.preventDefault(); showPage(page); }, {passive: false});
+}
+
+window.addEventListener('DOMContentLoaded', function() {
+  bindBtn('btn-chef',       'page-chef');
+  bindBtn('btn-boissons',   'page-boissons');
+  bindBtn('btn-bouteilles', 'page-bouteilles');
+  bindBtn('retour-chef',      'page-accueil');
+  bindBtn('retour-boissons',  'page-accueil');
+  bindBtn('retour-bouteilles','page-accueil');
+});
+</script>
+
+</body>
+</html>
